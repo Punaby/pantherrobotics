@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panther Robotics 2026-2027</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDKs (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --p700: #1a0a40; --p600: #2d1070; --p500: #4a1fa8; --p400: #7c3aed; --p300: #a78bfa; --p200: #c4b5fd;
+            --black: #03020a; --surf: #0a0720; --surf2: #110e2e; --surf3: #191540;
+            --fg: #f0ebff; --fg2: #a89bc8; --fg3: #6b5f88;
+            --bdr: rgba(124, 58, 237, 0.25);
+            --star1: rgba(255, 255, 255, 0.95); --star2: rgba(180, 160, 255, 0.85); --star3: rgba(255, 255, 255, 0.5);
+            --neb1: rgba(76, 29, 180, 0.18); --neb2: rgba(139, 92, 246, 0.12);
+        }
+        
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--black);
+            color: var(--fg);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── HEAVY HIGH-DENSITY EXPANDED SPACE STARFIELD ── */
+        body::before {
+            content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+            background:
+                radial-gradient(1px 1px at 10% 12%, var(--star1), transparent),
+                radial-gradient(1.5px 1.5px at 23% 45%, var(--star2), transparent),
+                radial-gradient(1px 1px at 38% 8%, var(--star1), transparent),
+                radial-gradient(1.2px 1.2px at 52% 71%, var(--star2), transparent),
+                radial-gradient(2px 2px at 65% 22%, var(--star1), transparent),
+                radial-gradient(1px 1px at 77% 55%, var(--star2), transparent),
+                radial-gradient(1.5px 1.5px at 88% 38%, var(--star1), transparent),
+                radial-gradient(1px 1px at 5% 82%, var(--star2), transparent),
+                radial-gradient(1.2px 1.2px at 15% 25%, var(--star3), transparent),
+                radial-gradient(2px 2px at 30% 60%, var(--star1), transparent),
+                radial-gradient(1px 1px at 45% 18%, var(--star2), transparent),
+                radial-gradient(1.5px 1.5px at 60% 85%, var(--star3), transparent),
+                radial-gradient(1px 1px at 72% 15%, var(--star1), transparent),
+                radial-gradient(2.5px 2.5px at 82% 68%, var(--star2), transparent),
+                radial-gradient(1.2px 1.2px at 92% 20%, var(--star3), transparent),
+                radial-gradient(1.5px 1.5px at 5% 40%, var(--star1), transparent);
+        }
+        body::after {
+            content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+            background:
+                radial-gradient(ellipse 70% 40% at 20% 50%, var(--neb1), transparent),
+                radial-gradient(ellipse 50% 60% at 80% 30%, var(--neb2), transparent);
+        }
+
+        .cyber-grid-vignette {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+            background-size: 80px 80px;
+            background-image: 
+                linear-gradient(to right, rgba(124, 58, 237, 0.12) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(124, 58, 237, 0.12) 1px, transparent 1px);
+            -webkit-mask-image: radial-gradient(circle 45% at 50% 50%, rgba(0,0,0,1) 0%, rgba(0,0,0,0.5) 45%, rgba(0,0,0,0) 100%);
+            mask-image: radial-gradient(circle 45% at 50% 50%, rgba(0,0,0,1) 0%, rgba(0,0,0,0.5) 45%, rgba(0,0,0,0) 100%);
+        }
+
+        header, main, footer { position: relative; z-index: 1; }
+
+        header {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(3, 2, 10, 0.92);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--bdr);
+            padding: 0 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; cursor: pointer; }
+        .logo-box { background: var(--p500); color: #fff; font-weight: 900; padding: 6px 10px; border-radius: 6px; font-size: 16px; letter-spacing: 1px; }
+        .logo-text { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; background: linear-gradient(to right, #fff, var(--fg2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        nav { display: flex; gap: 1rem; align-items: center; }
+        nav button { color: var(--fg2); font-size: 14px; font-weight: 500; transition: color .2s; background: none; border: none; cursor: pointer; padding: 6px 10px; border-radius: 6px; }
+        nav button:hover { color: var(--p300); background: rgba(124, 58, 237, 0.1); }
+        nav button.active { color: #fff; background: var(--p600); border: 1px solid var(--bdr); font-weight: 700; }
+
+        /* Profile Icon Button in Nav */
+        .profile-btn {
+            background: rgba(124, 58, 237, 0.15);
+            border: 1px solid var(--bdr);
+            color: var(--p300);
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .profile-btn:hover { background: var(--p500); color: #fff; border-color: var(--p300); }
+
+        .glass-card {
+            background: rgba(17, 14, 46, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--bdr);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.25s ease;
+        }
+        .glass-card:hover {
+            border-color: rgba(167, 139, 250, 0.45);
+            box-shadow: 0 8px 24px rgba(10, 7, 32, 0.6), 0 0 15px rgba(124, 58, 237, 0.2);
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, #a78bfa 0%, #c026d3 45%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--p500), #6366f1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            animation: constantNeonPulse 2s infinite ease-in-out;
+            cursor: pointer;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--p400), #4f46e5);
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        @keyframes constantNeonPulse {
+            0% {
+                box-shadow: 0 0 12px rgba(124, 58, 237, 0.6), 0 0 4px rgba(192, 38, 211, 0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+                border-color: rgba(167, 139, 250, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 28px rgba(124, 58, 237, 0.95), 0 0 14px rgba(192, 38, 211, 0.7), inset 0 1px 0 rgba(255,255,255,0.4);
+                border-color: rgba(255, 255, 255, 0.9);
+            }
+            100% {
+                box-shadow: 0 0 12px rgba(124, 58, 237, 0.6), 0 0 4px rgba(192, 38, 211, 0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+                border-color: rgba(167, 139, 250, 0.5);
+            }
+        }
+
+        .btn-secondary {
+            background: rgba(124, 58, 237, 0.08);
+            border: 1px solid rgba(124, 58, 237, 0.40);
+            color: var(--fg);
+            cursor: pointer;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-family: 'Space Grotesk', sans-serif;
+            transition: all 0.2s;
+        }
+        .btn-secondary:hover {
+            border-color: var(--p400);
+            background: rgba(124, 58, 237, 0.18);
+            transform: translateY(-2px);
+        }
+
+        input, textarea, select {
+            background: var(--surf);
+            border: 1px solid var(--bdr);
+            color: var(--fg);
+            border-radius: 8px;
+            padding: 10px 14px;
+            outline: none;
+            transition: all 0.2s;
+            width: 100%;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--p300);
+            box-shadow: 0 0 10px rgba(167, 139, 250, 0.3);
+        }
+
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(3, 2, 10, 0.88);
+            backdrop-filter: blur(10px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; padding: 1.5rem;
+        }
+        .modal {
+            background: var(--surf2);
+            border: 1px solid var(--bdr);
+            border-radius: 16px;
+            padding: 2rem;
+            width: 100%; max-width: 440px;
+            box-shadow: 0 0 30px rgba(124, 58, 237, 0.3);
+        }
+
+        .hidden { display: none !important; }
+
+        /* Messaging Platform Styles for Sub-Teams */
+        .chat-container {
+            background: rgba(17, 14, 46, 0.8);
+            border: 1px solid var(--bdr);
+            border-radius: 12px;
+            display: flex; flex-direction: column;
+            height: 500px; width: 100%;
+            overflow: hidden;
+        }
+        .chat-messages {
+            flex-grow: 1; padding: 1.25rem;
+            overflow-y: auto; display: flex; flex-direction: column; gap: 0.85rem;
+        }
+        .chat-bubble {
+            background: var(--surf3);
+            border: 1px solid var(--bdr);
+            padding: 10px 14px; border-radius: 10px;
+            max-width: 80%; align-self: flex-start;
+        }
+        .chat-bubble.self {
+            background: rgba(124, 58, 237, 0.25);
+            border-color: var(--p400);
+            align-self: flex-end;
+        }
+        .chat-author {
+            font-size: 11px; color: var(--p300);
+            font-family: 'Space Mono', monospace; margin-bottom: 3px; font-weight: 700;
+        }
+        .chat-text { font-size: 14px; color: var(--fg); word-break: break-word; line-height: 1.4; }
+        .chat-time { font-size: 10px; color: var(--fg3); text-align: right; margin-top: 4px; font-family: 'Space Mono', monospace; }
+        .chat-input-bar {
+            padding: 1rem; background: var(--surf);
+            border-top: 1px solid var(--bdr);
+            display: flex; gap: 0.75rem; align-items: center;
+        }
+        .chat-input-bar input { margin-bottom: 0; }
+
+        main {
+            flex-grow: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 3rem 1.5rem; max-width: 56rem; margin: 0 auto; width: 100%;
+        }
+
+        .hero-container {
+            text-align: center; display: flex; flex-direction: column; gap: 1.5rem; width: 100%;
+        }
+        h1 { font-size: clamp(2.5rem, 6vw, 4.2rem); font-weight: 700; line-height: 1.1; letter-spacing: -2px; color: #fff; }
+        .hero-desc { max-width: 36rem; margin: 0 auto; color: var(--fg2); font-size: 1.1rem; line-height: 1.6; }
+        .btn-wrapper { display: flex; flex-direction: column; gap: 1rem; max-width: 30rem; width: 100%; margin: 0 auto; padding-top: 1rem; }
+        @media (min-width: 640px) { .btn-wrapper { flex-direction: row; } }
+
+        footer {
+            background: rgba(3, 2, 10, 0.8);
+            border-top: 1px solid rgba(124, 58, 237, 0.15);
+            padding: 1rem 1.5rem; text-align: center;
+            color: var(--fg3); font-family: 'Space Mono', monospace; font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <div class="cyber-grid-vignette"></div>
+
+    <!-- SITE PASSCODE GATE -->
+    <div id="passwordGate" class="modal-overlay">
+        <div class="modal">
+            <h2 style="margin-bottom:0.5rem; color:#fff;">Panther Robotics Portal</h2>
+            <p style="color:var(--fg2); font-size:14px; margin-bottom:1.5rem;">Enter the team passcode to continue.</p>
+            <input type="password" id="sitePasscode" placeholder="Passcode" onkeydown="if(event.key==='Enter') verifySitePassword()">
+            <button class="btn-primary" style="width: 100%; margin-top:1rem;" onclick="verifySitePassword()">Enter Portal</button>
+        </div>
+    </div>
+
+    <!-- USER REGISTRATION / PROFILE SETUP MODAL -->
+    <div id="userSetupModal" class="modal-overlay hidden">
+        <div class="modal">
+            <h2 id="modalTitle" style="margin-bottom:0.5rem; color:#fff;">Member Setup</h2>
+            <p id="modalSubtitle" style="color:var(--fg2); font-size:14px; margin-bottom:1.5rem;">Choose your username and select a team (Max 6 members per team).</p>
+            <label style="font-size:12px; color:var(--fg2); display:block; margin-bottom:4px;">Username</label>
+            <input type="text" id="setupUsername" placeholder="e.g., Alex_RobotBuilder" style="margin-bottom:1rem;">
+            
+            <label style="font-size:12px; color:var(--fg2); display:block; margin-bottom:4px;">Team Selection (A - E)</label>
+            <select id="setupSubTeam" style="margin-bottom:1.5rem;">
+                <option value="Team A">Team A</option>
+                <option value="Team B">Team B</option>
+                <option value="Team C">Team C</option>
+                <option value="Team D">Team D</option>
+                <option value="Team E">Team E</option>
+            </select>
+
+            <div id="setupError" style="color:#ef4444; font-size:13px; margin-bottom:1rem; display:none;"></div>
+
+            <div style="display:flex; gap:10px;">
+                <button class="btn-primary" style="flex:1;" onclick="saveUserSetup()">Save Profile</button>
+                <button id="cancelProfileBtn" class="btn-secondary hidden" style="flex:1;" onclick="closeProfileModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN NAVIGATION HEADER -->
+    <header id="mainHeader" class="hidden">
+        <div class="logo" onclick="switchTab('landing')">
+            <img src="CroneLogo.png" alt="Logo" style="height: 38px; width: 38px; border-radius: 8px; object-fit: cover;">
+            <span class="logo-text">Panther Robotics</span>
+        </div>
+        <nav>
+            <button onclick="switchTab('landing')" id="nav-landing" class="active">Home</button>
+            <button onclick="switchTab('forum')" id="nav-forum">General Forum</button>
+            <button onclick="switchTab('subteams')" id="nav-subteams">Team Chat</button>
+            <button onclick="switchTab('resources')" id="nav-resources">Resources</button>
+            <button class="profile-btn" id="profileIconBtn" onclick="openProfileModal()" title="Edit Profile / Switch Team">👤</button>
+        </nav>
+    </header>
+
+    <!-- CONTENT VIEWS -->
+    <main id="appMain">
+        <!-- LANDING PAGE VIEW -->
+        <section id="view-landing" class="hero-container">
+            <h1>Welcome to <span class="gradient-text">Panther Robotics</span></h1>
+            <p class="hero-desc">Your official collaboration hub for team communication, strategy, and technical documentation.</p>
+            <div class="btn-wrapper">
+                <button class="btn-primary" onclick="switchTab('forum')">General Forum</button>
+                <button class="btn-secondary" onclick="switchTab('subteams')">My Team Chat</button>
+                <button class="btn-secondary" onclick="switchTab('resources')">Resources </button>
+            </div>
+        </section>
+
+        <!-- GENERAL FORUM VIEW -->
+        <section id="view-forum" class="hidden" style="width:100%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2>General Discussion Forum</h2>
+                <button class="btn-primary" style="padding:8px 18px;" onclick="openPostModal()">+ Add Post</button>
+            </div>
+            <div id="generalPostsList"></div>
+        </section>
+
+        <!-- SUB-TEAM CHAT VIEW -->
+        <section id="view-subteams" class="hidden" style="width:100%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h2 id="subTeamHeading">Team Channel</h2>
+                <span style="font-size: 13px; color: var(--fg2);">My Team: <strong id="assignedTeamTag" style="color: var(--p300); font-family:'Space Mono';">--</strong></span>
+            </div>
+            
+            <div class="chat-container">
+                <div id="chatMessagesList" class="chat-messages"></div>
+                <div class="chat-input-bar">
+                    <input type="text" id="chatMessageInput" placeholder="Type a message to your team..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+                    <button class="btn-primary" style="padding: 10px 20px;" onclick="sendChatMessage()">Send</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- RESOURCES & DOCS VIEW -->
+        <section id="view-resources" class="hidden" style="width:100%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2>Information & Resources</h2>
+                <button class="btn-secondary" style="padding:8px 18px;" onclick="promptEditResources()">+ Edit Resources</button>
+            </div>
+            <div class="glass-card">
+                <h3 style="margin-bottom:0.75rem; color:var(--p300);">Official Team Repository</h3>
+                <p style="color:var(--fg2); margin-bottom:1rem; font-size:14px;">Access all critical documentation, code links, and design assets below.</p>
+                <div id="resourcesList"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- GENERAL FORUM ADD POST MODAL -->
+    <div id="postModal" class="modal-overlay hidden">
+        <div class="modal">
+            <h3 style="margin-bottom:1rem; color:#fff;">Create New Post</h3>
+            <input type="text" id="postTitleInput" placeholder="Thread Title" style="margin-bottom:1rem;">
+            <textarea id="postContentInput" rows="4" placeholder="Write your message here..." style="margin-bottom:1rem; resize:vertical;"></textarea>
+            <div style="display: flex; gap: 0.75rem;">
+                <button class="btn-primary" style="flex:1;" onclick="submitPost()">Publish</button>
+                <button class="btn-secondary" style="flex:1;" onclick="closePostModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Panther Robotics Team Portal © 2026-2027</p>
+    </footer>
+
+    <script>
+        // TODO: Replace with your actual Firebase configuration from Firebase Console
+        const firebaseConfig = {
+  apiKey: "AIzaSyDKZkx8ud3Ff6HoqkA5Kz67ravrSdyHUQw",
+  authDomain: "pantherrobotics.firebaseapp.com",
+  projectId: "pantherrobotics",
+  storageBucket: "pantherrobotics.firebasestorage.app",
+  messagingSenderId: "647108324995",
+  appId: "1:647108324995:web:46102e4cc7de83c02d75b6",
+  measurementId: "G-GZ400FJF57"
+};
+
+        // Initialize Firebase safely
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        let currentUser = localStorage.getItem('panther_user') || '';
+        let currentSubTeam = localStorage.getItem('panther_subteam') || '';
+        let unsubGeneral = null;
+        let unsubChat = null;
+        let unsubResources = null;
+
+        window.onload = function() {
+            if (localStorage.getItem('panther_unlocked') === 'true') {
+                document.getElementById('passwordGate').classList.add('hidden');
+                document.getElementById('mainHeader').classList.remove('hidden');
+                checkUserRegistration();
+            }
+        };
+
+        function verifySitePassword() {
+            const input = document.getElementById('sitePasscode').value;
+            if (input === '37475') {
+                localStorage.setItem('panther_unlocked', 'true');
+                document.getElementById('passwordGate').classList.add('hidden');
+                document.getElementById('mainHeader').classList.remove('hidden');
+                checkUserRegistration();
+            } else {
+                alert('Incorrect passcode.');
+            }
+        }
+
+        function checkUserRegistration() {
+            if (!currentUser || !currentSubTeam) {
+                openProfileModal(true);
+            } else {
+                initPortalListeners();
+            }
+        }
+
+        function openProfileModal(isFirstTime = false) {
+            document.getElementById('setupUsername').value = currentUser;
+            if (currentSubTeam) document.getElementById('setupSubTeam').value = currentSubTeam;
+            
+            const cancelBtn = document.getElementById('cancelProfileBtn');
+            if (isFirstTime) {
+                cancelBtn.classList.add('hidden');
+                document.getElementById('modalTitle').innerText = "Member Setup";
+            } else {
+                cancelBtn.classList.remove('hidden');
+                document.getElementById('modalTitle').innerText = "Edit Profile / Switch Team";
+            }
+            document.getElementById('setupError').style.display = 'none';
+            document.getElementById('userSetupModal').classList.remove('hidden');
+        }
+
+        function closeProfileModal() {
+            if (!currentUser || !currentSubTeam) return;
+            document.getElementById('userSetupModal').classList.add('hidden');
+        }
+
+        // Sub-Team Capacity Check (Max 6 members)
+        async function saveUserSetup() {
+            const username = document.getElementById('setupUsername').value.trim();
+            const subteam = document.getElementById('setupSubTeam').value;
+            const errBox = document.getElementById('setupError');
+
+            if (!username) {
+                errBox.innerText = "Please enter a valid username.";
+                errBox.style.display = 'block';
+                return;
+            }
+
+            try {
+                // Query Firestore to check how many users are in the target subteam
+                const snapshot = await db.collection('members').where('subteam', '==', subteam).get();
+                let memberCount = 0;
+                snapshot.forEach(doc => {
+                    // If this user is already registered under this subteam, don't double count them
+                    if (doc.id !== currentUser) {
+                        memberCount++;
+                    }
+                });
+
+                if (memberCount >= 6) {
+                    errBox.innerText = `Error: ${subteam} is already full (Maximum capacity is 6 members). Please choose another team.`;
+                    errBox.style.display = 'block';
+                    return;
+                }
+
+                // Save or update member record in Firestore
+                await db.collection('members').doc(username).set({
+                    username: username,
+                    subteam: subteam,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // If username changed, delete old doc if existed
+                if (currentUser && currentUser !== username) {
+                    await db.collection('members').doc(currentUser).delete();
+                }
+
+                currentUser = username;
+                currentSubTeam = subteam;
+                localStorage.setItem('panther_user', currentUser);
+                localStorage.setItem('panther_subteam', currentSubTeam);
+
+                document.getElementById('userSetupModal').classList.add('hidden');
+                initPortalListeners();
+
+            } catch (err) {
+                console.error(err);
+                errBox.innerText = "Database error verifying team capacity. Try again.";
+                errBox.style.display = 'block';
+            }
+        }
+
+        function initPortalListeners() {
+            document.getElementById('assignedTeamTag').innerText = currentSubTeam;
+            document.getElementById('subTeamHeading').innerText = `${currentSubTeam} Live Chat`;
+            
+            setupGeneralPostsListener();
+            setupChatListener();
+            setupResourcesListener();
+        }
+
+        function switchTab(tabId) {
+            ['landing', 'forum', 'subteams', 'resources'].forEach(t => {
+                const view = document.getElementById(`view-${t}`);
+                const nav = document.getElementById(`nav-${t}`);
+                if (view) view.classList.add('hidden');
+                if (nav) nav.classList.remove('active');
+            });
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav) activeNav.classList.add('active');
+
+            if (tabId === 'subteams') {
+                const chatBox = document.getElementById('chatMessagesList');
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+
+        // --- REAL-TIME FIREBASE SYNCHRONIZATION ---
+
+        function setupGeneralPostsListener() {
+            if (unsubGeneral) unsubGeneral();
+            unsubGeneral = db.collection('general_posts').orderBy('timestamp', 'desc').onSnapshot(snapshot => {
+                const container = document.getElementById('generalPostsList');
+                if (snapshot.empty) {
+                    container.innerHTML = '<p style="color:var(--fg2);">No general posts yet.</p>';
+                    return;
+                }
+                let html = '';
+                snapshot.forEach(doc => {
+                    const p = doc.data();
+                    html += `
+                        <div class="glass-card" style="margin-bottom:1rem;">
+                            <h3 style="color:#fff; font-size:1.1rem; margin-bottom:0.5rem;">${escapeHTML(p.title)}</h3>
+                            <p style="color:var(--fg2); font-size:0.95rem; line-height:1.5;">${escapeHTML(p.content)}</p>
+                            <div style="font-size:12px; color:var(--fg3); font-family:'Space Mono'; margin-top:0.75rem;">Posted by @${escapeHTML(p.author)}</div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            });
+        }
+
+        function setupChatListener() {
+            if (unsubChat) unsubChat();
+            unsubChat = db.collection('subteam_chats')
+                .where('subteam', '==', currentSubTeam)
+                .orderBy('timestamp', 'asc')
+                .onSnapshot(snapshot => {
+                    const container = document.getElementById('chatMessagesList');
+                    if (snapshot.empty) {
+                        container.innerHTML = '<p style="color:var(--fg2); text-align:center; margin-top:2rem;">No messages in ' + currentSubTeam + ' yet. Start chatting below!</p>';
+                        return;
+                    }
+                    let html = '';
+                    snapshot.forEach(doc => {
+                        const m = doc.data();
+                        const isSelf = (m.author === currentUser);
+                        html += `
+                            <div class="chat-bubble ${isSelf ? 'self' : ''}">
+                                <div class="chat-author">@${escapeHTML(m.author)}</div>
+                                <div class="chat-text">${escapeHTML(m.text)}</div>
+                                <div class="chat-time">${escapeHTML(m.time || '')}</div>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html;
+                    container.scrollTop = container.scrollHeight;
+                }, err => {
+                    console.error("Chat sync error (ensure Firestore index exists if required):", err);
+                });
+        }
+
+        function setupResourcesListener() {
+            if (unsubResources) unsubResources();
+            unsubResources = db.collection('resources').onSnapshot(snapshot => {
+                const container = document.getElementById('resourcesList');
+                if (snapshot.empty) {
+                    container.innerHTML = '<p style="color:var(--fg2);">No resources listed yet.</p>';
+                    return;
+                }
+                let html = '';
+                snapshot.forEach(doc => {
+                    const r = doc.data();
+                    html += `
+                        <div style="padding:10px; background:var(--surf2); border:1px solid var(--bdr); border-radius:6px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <strong style="color:var(--fg);">${escapeHTML(r.title)}</strong>
+                                <span style="font-size:11px; color:var(--fg3); font-family:'Space Mono'; margin-left:8px;">[${escapeHTML(r.category)}]</span>
+                            </div>
+                            <a href="${escapeHTML(r.url || '#')}" target="_blank" style="color:var(--p300); font-size:13px; text-decoration:none;">Access →</a>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            });
+        }
+
+        // --- ACTIONS ---
+
+        function openPostModal() {
+            document.getElementById('postTitleInput').value = '';
+            document.getElementById('postContentInput').value = '';
+            document.getElementById('postModal').classList.remove('hidden');
+        }
+
+        function closePostModal() {
+            document.getElementById('postModal').classList.add('hidden');
+        }
+
+        async function submitPost() {
+            const title = document.getElementById('postTitleInput').value.trim();
+            const content = document.getElementById('postContentInput').value.trim();
+            if (!title || !content) {
+                alert('Please fill out both fields.');
+                return;
+            }
+
+            try {
+                await db.collection('general_posts').add({
+                    title: title,
+                    content: content,
+                    author: currentUser,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                closePostModal();
+            } catch (err) {
+                alert("Error posting thread: " + err.message);
+            }
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chatMessageInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            try {
+                await db.collection('subteam_chats').add({
+                    subteam: currentSubTeam,
+                    text: text,
+                    author: currentUser,
+                    time: timeString,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                input.value = '';
+            } catch (err) {
+                alert("Error sending message: " + err.message);
+            }
+        }
+
+        async function promptEditResources() {
+            const pwd = prompt("Enter Admin Password to edit resources:");
+            if (pwd === "2733") {
+                const title = prompt("Resource Title:");
+                const category = prompt("Category (e.g. Design, Code, Rules):");
+                const url = prompt("Resource URL / Link:", "https://");
+                if (title && category) {
+                    try {
+                        await db.collection('resources').add({
+                            title: title,
+                            category: category,
+                            url: url || '#',
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        alert("Resource added successfully!");
+                    } catch (err) {
+                        alert("Error saving resource: " + err.message);
+                    }
+                }
+            } else if (pwd !== null) {
+                alert("Incorrect password.");
+            }
+        }
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&')
+                .replace(/</g, '<')
+                .replace(/>/g, '>')
+                .replace(/"/g, '"')
+                .replace(/'/g, '');
+        }
+    </script>
+</body>
+</html>
